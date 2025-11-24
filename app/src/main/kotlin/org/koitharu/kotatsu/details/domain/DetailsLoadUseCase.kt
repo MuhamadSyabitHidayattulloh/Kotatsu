@@ -138,17 +138,16 @@ class DetailsLoadUseCase @Inject constructor(
 			)
 		}
 		val remoteDetails = remoteDeferred.await().getOrThrow()
-		emit(
-			MangaDetails(
-				manga = remoteDetails,
-				localManga = localManga,
-				override = override,
-				description = (remoteDetails.description
-					?: localManga?.manga?.description)?.parseAsHtml(withImages = true),
-				isLoaded = true,
-			),
+		val mangaDetails = MangaDetails(
+			manga = remoteDetails,
+			localManga = localManga,
+			override = override,
+			description = (remoteDetails.description
+				?: localManga?.manga?.description)?.parseAsHtml(withImages = true),
+			isLoaded = true,
 		)
-		mangaDataRepository.updateChapters(remoteDetails)
+		emit(mangaDetails)
+		mangaDataRepository.updateChapters(mangaDetails.toManga())
 	}
 
 	private suspend fun getDetails(seed: Manga, force: Boolean) = runCatchingCancellable {
