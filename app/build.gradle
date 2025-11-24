@@ -21,8 +21,8 @@ android {
 		applicationId 'org.koitharu.kotatsu'
 		minSdk = 23
 		targetSdk = 36
-		versionCode = 1033
-		versionName = '9.4.1'
+		versionCode = 1034
+		versionName = '9.4.2'
 		generatedDensities = []
 		testInstrumentationRunner 'org.koitharu.kotatsu.HiltTestRunner'
 		ksp {
@@ -123,7 +123,7 @@ dependencies {
 		parsersVersion = System.getProperty('parsersVersionOverride')
 	}
 	//noinspection UseTomlInstead
-	implementation("com.github.KotatsuApp:kotatsu-parsers:$parsersVersion") {
+	implementation("com.github.MuhamadSyabitHidayattulloh:kotatsu-parsers:$parsersVersion") {
 		exclude group: 'org.json', module: 'json'
 	}
 
