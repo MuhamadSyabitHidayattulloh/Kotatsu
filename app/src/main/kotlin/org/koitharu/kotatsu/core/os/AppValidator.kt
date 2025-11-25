@@ -21,6 +21,6 @@ class AppValidator @Inject constructor(
 	}
 
 	private companion object {
-		private const val CERT_SHA256 = "67e15100bb809301783edcb6348fa3bbf83034d91e62868a91053dbd70db3f18"
+		private const val CERT_SHA256 = "148947c4935d0779386c99624a7236305ae7062f20e49b2dcf42693eba5264f4"
 	}
 }
