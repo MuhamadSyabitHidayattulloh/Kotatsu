@@ -49,10 +49,17 @@ class DetailsLoadUseCase @Inject constructor(
 			"Cannot resolve intent $intent"
 		}
 		val override = mangaDataRepository.getOverride(manga.id)
+		val initialLocalManga = if (!manga.isLocal) {
+			runCatchingCancellable {
+				localMangaRepository.findSavedManga(manga, withDetails = true)
+			}.getOrNull()
+		} else {
+			null
+		}
 		emit(
 			MangaDetails(
 				manga = manga,
-				localManga = null,
+				localManga = initialLocalManga,
 				override = override,
 				description = manga.description?.parseAsHtml(withImages = false),
 				isLoaded = false,
@@ -61,7 +68,7 @@ class DetailsLoadUseCase @Inject constructor(
 		if (manga.isLocal) {
 			loadLocal(manga, override, force)
 		} else {
-			loadRemote(manga, override, force)
+			loadRemote(manga, override, force, initialLocalManga)
 		}
 	}.distinctUntilChanged()
 		.flowOn(Dispatchers.Default)
@@ -120,12 +127,12 @@ class DetailsLoadUseCase @Inject constructor(
 	private suspend fun FlowCollector<MangaDetails>.loadRemote(
 		manga: Manga,
 		override: MangaOverride?,
-		force: Boolean
+		force: Boolean,
+		localManga: LocalManga?,
 	) = coroutineScope {
 		val remoteDeferred = async {
 			getDetails(manga, force)
 		}
-		val localManga = localMangaRepository.findSavedManga(manga, withDetails = true)
 		if (localManga != null) {
 			emit(
 				MangaDetails(
