@@ -159,6 +159,12 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 				true
 			}
 
+			R.id.action_redownload -> {
+				viewModel.redownload(controller.snapshot())
+				mode?.finish()
+				true
+			}
+
 			R.id.action_remove -> {
 				viewModel.remove(controller.snapshot())
 				mode?.finish()
@@ -176,19 +182,22 @@ class DownloadsActivity : BaseActivity<ActivityDownloadsBinding>(),
 
 	override fun onPrepareActionMode(controller: ListSelectionController, mode: ActionMode?, menu: Menu): Boolean {
 		val snapshot = viewModel.snapshot(controller.peekCheckedIds())
-		var canPause = true
 		var canResume = true
+		var canPause = true
 		var canCancel = true
+		var canDownload = true
 		var canRemove = true
 		for (item in snapshot) {
-			canPause = canPause and item.canPause
 			canResume = canResume and item.canResume
+			canPause = canPause and item.canPause
 			canCancel = canCancel and !item.workState.isFinished
+			canDownload = canDownload and (item.manga != null)
 			canRemove = canRemove and item.workState.isFinished
 		}
-		menu.findItem(R.id.action_pause)?.isVisible = canPause
 		menu.findItem(R.id.action_resume)?.isVisible = canResume
+		menu.findItem(R.id.action_pause)?.isVisible = canPause
 		menu.findItem(R.id.action_cancel)?.isVisible = canCancel
+		menu.findItem(R.id.action_redownload)?.isVisible = canDownload
 		menu.findItem(R.id.action_remove)?.isVisible = canRemove
 		return super.onPrepareActionMode(controller, mode, menu)
 	}
