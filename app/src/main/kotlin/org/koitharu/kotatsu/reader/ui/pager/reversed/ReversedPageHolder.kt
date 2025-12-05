@@ -41,6 +41,7 @@ class ReversedPageHolder(
 				height / sHeight.toFloat(),
 			)
 			binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
+			applyTextOverlays()
 			when (settings.zoomMode) {
 				ZoomMode.FIT_CENTER -> {
 					minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE

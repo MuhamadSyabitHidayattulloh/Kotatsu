@@ -49,6 +49,7 @@ class DoublePageHolder(
 				height / sHeight.toFloat(),
 			)
 			binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
+			applyTextOverlays()
 			minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
 			setScaleAndCenter(
 				minScale,

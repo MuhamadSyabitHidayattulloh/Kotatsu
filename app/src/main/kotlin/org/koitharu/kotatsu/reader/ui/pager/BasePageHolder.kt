@@ -203,4 +203,9 @@ abstract class BasePageHolder<B : ViewBinding>(
 			else -> 4
 		}
 	}
+
+	protected open fun applyTextOverlays() {
+		// This method should be overridden by subclasses that have TextOverlayView
+		// Default implementation does nothing for holders without text overlay support
+	}
 }

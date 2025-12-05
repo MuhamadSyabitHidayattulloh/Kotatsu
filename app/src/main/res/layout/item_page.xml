@@ -15,6 +15,11 @@
 		app:doubleTapZoomStyle="center"
 		app:restoreStrategy="deferred" />
 
+	<org.koitharu.kotatsu.reader.ui.pager.TextOverlayView
+		android:id="@+id/textOverlayView"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" />
+
 	<TextView
 		android:id="@+id/textView_number"
 		android:layout_width="wrap_content"

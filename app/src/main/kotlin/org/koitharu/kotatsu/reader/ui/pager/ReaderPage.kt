@@ -3,12 +3,15 @@ package org.koitharu.kotatsu.reader.ui.pager
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
+import org.koitharu.kotatsu.core.model.parcelable.MangaPageTextParceler
 import org.koitharu.kotatsu.core.model.parcelable.MangaSourceParceler
 import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaPageText
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
 @Parcelize
 @TypeParceler<MangaSource, MangaSourceParceler>
+@TypeParceler<MangaPageText, MangaPageTextParceler>
 data class ReaderPage(
 	val id: Long,
 	val url: String,
@@ -16,6 +19,7 @@ data class ReaderPage(
 	val chapterId: Long,
 	val index: Int,
 	val source: MangaSource,
+	val texts: List<MangaPageText>? = null,
 ) : Parcelable {
 
 	constructor(page: MangaPage, index: Int, chapterId: Long) : this(
@@ -25,6 +29,7 @@ data class ReaderPage(
 		chapterId = chapterId,
 		index = index,
 		source = page.source,
+		texts = page.texts,
 	)
 
 	fun toMangaPage() = MangaPage(
@@ -32,5 +37,6 @@ data class ReaderPage(
 		url = url,
 		preview = preview,
 		source = source,
+		texts = texts,
 	)
 }

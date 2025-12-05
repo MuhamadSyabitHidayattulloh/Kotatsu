@@ -80,6 +80,7 @@ open class PageHolder(
 			binding.ssiv.height / binding.ssiv.sHeight.toFloat(),
 		)
 		binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
+		applyTextOverlays()
 		when (settings.zoomMode) {
 			ZoomMode.FIT_CENTER -> {
 				binding.ssiv.minimumScaleType = SubsamplingScaleImageView.SCALE_TYPE_CENTER_INSIDE
@@ -143,6 +144,16 @@ open class PageHolder(
 			}
 			setMargins(baseMargin + (corner?.radius ?: 0))
 		}
+	}
+
+	override fun applyTextOverlays() {
+		boundData?.texts?.let { texts ->
+			binding.textOverlayView.setTextOverlays(
+				texts = texts,
+				imageWidth = binding.ssiv.sWidth,
+				imageHeight = binding.ssiv.sHeight
+			)
+		} ?: binding.textOverlayView.clear()
 	}
 
 	private fun scaleBy(factor: Float) {
