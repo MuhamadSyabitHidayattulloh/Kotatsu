@@ -47,6 +47,9 @@ class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig 
 			is ConfigKey.ShowSuspiciousContent -> prefs.getBoolean(key.key, key.defaultValue)
 			is ConfigKey.SplitByTranslations -> prefs.getBoolean(key.key, key.defaultValue)
 			is ConfigKey.PreferredImageServer -> prefs.getString(key.key, key.defaultValue)?.nullIfEmpty()
+			is ConfigKey.TextOverlayFontSize -> prefs.getInt(key.key, key.defaultValue)
+			is ConfigKey.TranslatorModel -> prefs.getString(key.key, key.defaultValue).ifNullOrEmpty { key.defaultValue }
+			is ConfigKey.TranslatorLanguage -> prefs.getString(key.key, key.defaultValue).ifNullOrEmpty { key.defaultValue }
 		} as T
 	}
 
@@ -57,6 +60,9 @@ class SourceSettings(context: Context, source: MangaSource) : MangaSourceConfig 
 			is ConfigKey.UserAgent -> putString(key.key, (value as String?)?.sanitizeHeaderValue())
 			is ConfigKey.SplitByTranslations -> putBoolean(key.key, value as Boolean)
 			is ConfigKey.PreferredImageServer -> putString(key.key, value as String? ?: "")
+			is ConfigKey.TextOverlayFontSize -> putInt(key.key, value as Int)
+			is ConfigKey.TranslatorModel -> putString(key.key, value as String?)
+			is ConfigKey.TranslatorLanguage -> putString(key.key, value as String?)
 		}
 	}
 

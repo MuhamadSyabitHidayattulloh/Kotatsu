@@ -101,6 +101,43 @@ private fun PreferenceFragmentCompat.addPreferencesFromParserRepository(reposito
 					summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
 				}
 			}
+
+			is ConfigKey.TextOverlayFontSize -> {
+				EditTextPreference(screen.context).apply {
+					summaryProvider = EditTextDefaultSummaryProvider(key.defaultValue.toString())
+					setOnBindEditTextListener(
+						EditTextBindListener(
+							inputType = EditorInfo.TYPE_CLASS_NUMBER,
+							hint = key.defaultValue.toString(),
+						),
+					)
+					setDefaultValue(key.defaultValue.toString())
+					setTitle(R.string.text_overlay_font_size)
+					setDialogTitle(R.string.text_overlay_font_size)
+				}
+			}
+
+			is ConfigKey.TranslatorModel -> {
+				ListPreference(screen.context).apply {
+					entries = key.presetValues.values.mapToArray { it }
+					entryValues = key.presetValues.keys.mapToArray { it }
+					setDefaultValue(key.defaultValue)
+					setTitle(R.string.translator_model)
+					setDialogTitle(R.string.translator_model)
+					summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+				}
+			}
+
+			is ConfigKey.TranslatorLanguage -> {
+				ListPreference(screen.context).apply {
+					entries = key.presetValues.values.mapToArray { it }
+					entryValues = key.presetValues.keys.mapToArray { it }
+					setDefaultValue(key.defaultValue)
+					setTitle(R.string.translator_language)
+					setDialogTitle(R.string.translator_language)
+					summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+				}
+			}
 		}
 		preference.isIconSpaceReserved = false
 		preference.key = key.key
