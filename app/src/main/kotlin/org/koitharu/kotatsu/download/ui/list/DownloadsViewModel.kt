@@ -33,6 +33,7 @@ import org.koitharu.kotatsu.core.util.ext.call
 import org.koitharu.kotatsu.core.util.ext.isEmpty
 import org.koitharu.kotatsu.download.domain.DownloadState
 import org.koitharu.kotatsu.download.ui.list.chapters.DownloadChapter
+import org.koitharu.kotatsu.download.ui.worker.DownloadTask
 import org.koitharu.kotatsu.download.ui.worker.DownloadWorker
 import org.koitharu.kotatsu.list.ui.model.EmptyState
 import org.koitharu.kotatsu.list.ui.model.ListHeader
@@ -172,6 +173,32 @@ class DownloadsViewModel @Inject constructor(
 			}
 			workScheduler.delete(uuids)
 			onActionDone.call(ReversibleAction(R.string.downloads_removed, null))
+		}
+	}
+
+	fun redownload(ids: Set<Long>) {
+		launchJob(Dispatchers.Default) {
+			val snapshot = works.value ?: return@launchJob
+			val tasks = ArrayList<Pair<Manga, DownloadTask>>()
+			for (work in snapshot) {
+				if (work.id.mostSignificantBits in ids && work.manga != null) {
+					val task = workScheduler.getTask(work.id) ?: continue
+					val newTask = DownloadTask(
+						mangaId = task.mangaId,
+						isPaused = false,
+						isSilent = false,
+						chaptersIds = task.chaptersIds,
+						destination = task.destination,
+						format = task.format,
+						allowMeteredNetwork = task.allowMeteredNetwork,
+					)
+					tasks.add(work.manga to newTask)
+				}
+			}
+			if (tasks.isNotEmpty()) {
+				workScheduler.schedule(tasks)
+				onActionDone.call(ReversibleAction(R.string.download_started, null))
+			}
 		}
 	}
 

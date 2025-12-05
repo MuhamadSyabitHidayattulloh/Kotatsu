@@ -22,6 +22,12 @@
 		app:showAsAction="ifRoom|withText" />
 
 	<item
+		android:id="@+id/action_redownload"
+		android:icon="@drawable/ic_redownload"
+		android:title="@string/download"
+		app:showAsAction="ifRoom|withText" />
+
+	<item
 		android:id="@+id/action_remove"
 		android:icon="@drawable/ic_delete"
 		android:title="@string/remove"
