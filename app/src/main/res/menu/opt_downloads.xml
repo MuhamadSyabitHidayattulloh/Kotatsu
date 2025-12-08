@@ -28,6 +28,11 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_redownload_failed"
+		android:title="@string/redownload_failed"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_settings"
 		android:title="@string/settings"
 		app:showAsAction="never" />

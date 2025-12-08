@@ -394,6 +394,7 @@
     <string name="paused">Paused</string>
     <!-- Menu item; action to remove completed items -->
     <string name="remove_completed">Remove completed</string>
+    <string name="redownload_failed">Redownload failed</string>
     <string name="cancel_all">Cancel all</string>
     <string name="downloads_wifi_only">Download only via Wi-Fi</string>
     <string name="downloads_wifi_only_summary">Stop downloading when switching to a mobile network</string>
