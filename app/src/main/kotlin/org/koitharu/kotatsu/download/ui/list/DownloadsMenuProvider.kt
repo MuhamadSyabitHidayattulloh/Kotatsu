@@ -36,7 +36,6 @@ class DownloadsMenuProvider(
 		menu.findItem(R.id.action_pause)?.isVisible = viewModel.hasActiveWorks.value == true
 		menu.findItem(R.id.action_resume)?.isVisible = viewModel.hasPausedWorks.value == true
 		menu.findItem(R.id.action_cancel_all)?.isVisible = viewModel.hasCancellableWorks.value == true
-		menu.findItem(R.id.action_redownload_failed)?.isVisible = viewModel.hasFailedWorks.value == true
 	}
 
 	private fun confirmCancelAll() {
