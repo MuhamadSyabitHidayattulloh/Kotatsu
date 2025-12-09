@@ -89,6 +89,10 @@ class DownloadsViewModel @Inject constructor(
 		it?.any { x -> !x.workState.isFinished } == true
 	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
 
+	val hasFailedWorks = works.map {
+		it?.any { x -> x.hasFailed } == true
+	}.stateIn(viewModelScope + Dispatchers.Default, SharingStarted.WhileSubscribed(5000), false)
+
 	fun cancel(id: UUID) {
 		launchJob(Dispatchers.Default) {
 			workScheduler.cancel(id)
@@ -206,6 +210,32 @@ class DownloadsViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			workScheduler.removeCompleted()
 			onActionDone.call(ReversibleAction(R.string.downloads_removed, null))
+		}
+	}
+
+	fun redownloadFailed() {
+		launchJob(Dispatchers.Default) {
+			val snapshot = works.value ?: return@launchJob
+			val tasks = ArrayList<Pair<Manga, DownloadTask>>()
+			for (work in snapshot) {
+				if (work.hasFailed && work.manga != null) {
+					val task = workScheduler.getTask(work.id) ?: continue
+					val newTask = DownloadTask(
+						mangaId = task.mangaId,
+						isPaused = false,
+						isSilent = false,
+						chaptersIds = task.chaptersIds,
+						destination = task.destination,
+						format = task.format,
+						allowMeteredNetwork = task.allowMeteredNetwork,
+					)
+					tasks.add(work.manga to newTask)
+				}
+			}
+			if (tasks.isNotEmpty()) {
+				workScheduler.schedule(tasks)
+				onActionDone.call(ReversibleAction(R.string.download_started, null))
+			}
 		}
 	}
 

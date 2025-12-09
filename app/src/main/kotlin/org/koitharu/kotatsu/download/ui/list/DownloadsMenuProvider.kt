@@ -23,6 +23,7 @@ class DownloadsMenuProvider(
 			R.id.action_pause -> viewModel.pauseAll()
 			R.id.action_resume -> viewModel.resumeAll()
 			R.id.action_cancel_all -> confirmCancelAll()
+			R.id.action_redownload_failed -> confirmRedownloadFailed()
 			R.id.action_remove_completed -> confirmRemoveCompleted()
 			R.id.action_settings -> activity.router.openDownloadsSetting()
 			else -> return false
@@ -35,6 +36,7 @@ class DownloadsMenuProvider(
 		menu.findItem(R.id.action_pause)?.isVisible = viewModel.hasActiveWorks.value == true
 		menu.findItem(R.id.action_resume)?.isVisible = viewModel.hasPausedWorks.value == true
 		menu.findItem(R.id.action_cancel_all)?.isVisible = viewModel.hasCancellableWorks.value == true
+		menu.findItem(R.id.action_redownload_failed)?.isVisible = viewModel.hasFailedWorks.value == true
 	}
 
 	private fun confirmCancelAll() {
@@ -54,6 +56,16 @@ class DownloadsMenuProvider(
 			setIcon(R.drawable.ic_clear_all)
 			setNegativeButton(android.R.string.cancel, null)
 			setPositiveButton(R.string.clear) { _, _ -> viewModel.removeCompleted() }
+		}.show()
+	}
+
+	private fun confirmRedownloadFailed() {
+		buildAlertDialog(activity, isCentered = true) {
+			setTitle(R.string.redownload_failed)
+			setMessage(R.string.redownload_failed_downloads_confirm)
+			setIcon(R.drawable.ic_redownload)
+			setNegativeButton(android.R.string.cancel, null)
+			setPositiveButton(R.string.confirm) { _, _ -> viewModel.redownloadFailed() }
 		}.show()
 	}
 }

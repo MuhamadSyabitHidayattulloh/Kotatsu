@@ -23,6 +23,11 @@
 		app:showAsAction="never" />
 
 	<item
+		android:id="@+id/action_redownload_failed"
+		android:title="@string/redownload_failed"
+		app:showAsAction="never" />
+
+	<item
 		android:id="@+id/action_remove_completed"
 		android:title="@string/remove_completed"
 		app:showAsAction="never" />

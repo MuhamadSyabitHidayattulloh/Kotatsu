@@ -394,6 +394,7 @@
     <string name="paused">Paused</string>
     <!-- Menu item; action to remove completed items -->
     <string name="remove_completed">Remove completed</string>
+    <string name="redownload_failed">Redownload failed</string>
     <string name="cancel_all">Cancel all</string>
     <string name="downloads_wifi_only">Download only via Wi-Fi</string>
     <string name="downloads_wifi_only_summary">Stop downloading when switching to a mobile network</string>
@@ -404,6 +405,7 @@
     <string name="no_thanks">No thanks</string>
     <string name="cancel_all_downloads_confirm">All active downloads will be cancelled, partially downloaded data will be lost</string>
     <string name="remove_completed_downloads_confirm">Your downloads history will be permanently deleted. No downloaded files will be affected</string>
+    <string name="redownload_failed_downloads_confirm">All downloads with errors will be restarted</string>
     <string name="text_downloads_list_holder">You don\'t have any downloads</string>
     <string name="downloads_resumed">Downloads have been resumed</string>
     <string name="downloads_paused">Downloads have been paused</string>
