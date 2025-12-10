@@ -102,22 +102,6 @@ private fun PreferenceFragmentCompat.addPreferencesFromParserRepository(reposito
 				}
 			}
 
-			is ConfigKey.TextOverlayFontSize -> {
-				EditTextPreference(screen.context).apply {
-					summaryProvider = EditTextDefaultSummaryProvider(key.defaultValue)
-					setOnBindEditTextListener(
-						EditTextBindListener(
-							inputType = EditorInfo.TYPE_CLASS_NUMBER,
-							hint = key.defaultValue,
-							validator = null,
-						),
-					)
-					setDefaultValue(key.defaultValue)
-					setTitle(R.string.text_overlay_font_size)
-					setDialogTitle(R.string.text_overlay_font_size)
-				}
-			}
-
 			is ConfigKey.TranslatorModel -> {
 				ListPreference(screen.context).apply {
 					entries = key.presetValues.values.mapToArray { it }
