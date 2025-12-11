@@ -57,7 +57,7 @@ class TextOverlayView @JvmOverloads constructor(
 	private val shadowRect = RectF()
 	private val textBounds = Rect()
 
-	fun processTextOverlays(
+	internal fun processTextOverlays(
 		texts: List<MangaPageText>,
 		imageWidth: Int,
 		imageHeight: Int,
