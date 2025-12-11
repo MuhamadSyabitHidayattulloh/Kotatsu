@@ -14,7 +14,9 @@ import androidx.viewbinding.ViewBinding
 import com.davemorrissey.labs.subscaleview.DefaultOnImageEventListener
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koitharu.kotatsu.BuildConfig
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.exceptions.resolve.ExceptionResolver
@@ -50,6 +52,8 @@ abstract class BasePageHolder<B : ViewBinding>(
 	)
 	protected val bindingInfo = LayoutPageInfoBinding.bind(binding.root)
 	protected abstract val ssiv: SubsamplingScaleImageView
+
+	private var textOverlayJob: Job? = null
 
 	protected val settings: ReaderSettings
 		get() = viewModel.settingsProducer.value
@@ -137,6 +141,7 @@ abstract class BasePageHolder<B : ViewBinding>(
 
 	@CallSuper
 	open fun onRecycled() {
+		textOverlayJob?.cancel()
 		viewModel.onRecycle()
 		ssiv.recycle()
 	}
@@ -201,6 +206,25 @@ abstract class BasePageHolder<B : ViewBinding>(
 			BuildConfig.DEBUG -> 32
 			context.isLowRamDevice() -> 8
 			else -> 4
+		}
+	}
+
+	protected open suspend fun processTextOverlays(): Any? {
+		// Can be overridden by subclasses to perform heavy text processing off the main thread.
+		return null
+	}
+
+	protected open fun renderTextOverlays(processedData: Any?) {
+		// Can be overridden by subclasses to apply processed text overlays on the main thread.
+	}
+
+	protected fun applyTextOverlaysAsync() {
+		textOverlayJob?.cancel()
+		textOverlayJob = lifecycleScope.launch {
+			val processedData = withContext(Dispatchers.Default) {
+				processTextOverlays()
+			}
+			renderTextOverlays(processedData)
 		}
 	}
 

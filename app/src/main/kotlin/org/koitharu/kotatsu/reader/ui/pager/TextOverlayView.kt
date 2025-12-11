@@ -20,13 +20,13 @@ import kotlin.math.min
 class TextOverlayView @JvmOverloads constructor(
 	context: Context,
 	attrs: AttributeSet? = null,
-	defStyleAttr: Int = 0
+	defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
-	private var textOverlays: List<MangaPageText>? = null
+	private var processedTextOverlays: List<ProcessedTextOverlay>? = null
 	private var imageWidth: Int = 0
 	private var imageHeight: Int = 0
-	
+
 	private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
 		color = Color.BLACK
 		textSize = 32f
@@ -57,36 +57,26 @@ class TextOverlayView @JvmOverloads constructor(
 	private val shadowRect = RectF()
 	private val textBounds = Rect()
 
-	fun setTextOverlays(texts: List<MangaPageText>?, imageWidth: Int, imageHeight: Int) {
-		this.textOverlays = texts
+	fun processTextOverlays(
+		texts: List<MangaPageText>,
+		imageWidth: Int,
+		imageHeight: Int,
+	): List<ProcessedTextOverlay> {
 		this.imageWidth = imageWidth
 		this.imageHeight = imageHeight
-		post { invalidate() }
-	}
 
-	fun clear() {
-		textOverlays = null
-		invalidate()
-	}
-
-	override fun onDraw(canvas: Canvas) {
-		super.onDraw(canvas)
-		
-		val overlays = textOverlays ?: return
-		if (imageWidth == 0 || imageHeight == 0 || width == 0 || height == 0) return
-		
 		val scaleX = width.toFloat() / imageWidth
 		val scaleY = height.toFloat() / imageHeight
-		
-		overlays.forEach { overlay ->
+
+		return texts.map { overlay ->
 			val left = overlay.rect.left * scaleX
 			val top = overlay.rect.top * scaleY
 			val rectWidth = overlay.rect.width * scaleX
 			val rectHeight = overlay.rect.height * scaleY
-			
+
 			val maxWidth = (rectWidth - padding * 2).toInt()
-			if (maxWidth <= 0) return@forEach
-			
+			if (maxWidth <= 0) return@map null
+
 			val fontSize = calculateOptimalFontSize(
 				text = overlay.text,
 				maxWidth = maxWidth,
@@ -95,34 +85,57 @@ class TextOverlayView @JvmOverloads constructor(
 				maxSize = context.resources.resolveDp(72f),
 				targetSize = rectHeight * 0.6f,
 			)
-			
-			textPaint.textSize = fontSize
-			shadowPaint.textSize = fontSize
-			
-			val staticLayout = createStaticLayout(overlay.text, maxWidth)
-			
-			val layoutHeight = staticLayout.height.toFloat()
-			val backgroundHeight = layoutHeight + padding * 2
-			
-			tempRect.set(
-				left,
-				top,
-				left + rectWidth,
-				top + backgroundHeight,
+
+			val layout = createStaticLayout(overlay.text, textPaint.apply { this.textSize = fontSize }, maxWidth)
+
+			ProcessedTextOverlay(
+				staticLayout = layout,
+				left = left,
+				top = top,
+				rectWidth = rectWidth,
+				backgroundHeight = layout.height.toFloat() + padding * 2,
 			)
-			
+		}.filterNotNull()
+	}
+
+	fun renderTextOverlays(processedData: Any) {
+		@Suppress("UNCHECKED_CAST")
+		this.processedTextOverlays = processedData as? List<ProcessedTextOverlay>
+		post { invalidate() }
+	}
+
+
+	fun clear() {
+		processedTextOverlays = null
+		invalidate()
+	}
+
+	override fun onDraw(canvas: Canvas) {
+		super.onDraw(canvas)
+
+		val overlays = processedTextOverlays ?: return
+		if (imageWidth == 0 || imageHeight == 0 || width == 0 || height == 0) return
+
+		overlays.forEach { overlay ->
+			tempRect.set(
+				overlay.left,
+				overlay.top,
+				overlay.left + overlay.rectWidth,
+				overlay.top + overlay.backgroundHeight,
+			)
+
 			shadowRect.set(tempRect)
 			shadowRect.offset(0f, context.resources.resolveDp(2f))
 			canvas.drawRoundRect(shadowRect, cornerRadius, cornerRadius, shadowBackgroundPaint)
 			canvas.drawRoundRect(tempRect, cornerRadius, cornerRadius, backgroundPaint)
-			
+
 			canvas.save()
-			canvas.translate(left + padding, top + padding)
-			staticLayout.draw(canvas)
+			canvas.translate(overlay.left + padding, overlay.top + padding)
+			overlay.staticLayout.draw(canvas)
 			canvas.restore()
 		}
 	}
-	
+
 	private fun calculateOptimalFontSize(
 		text: String,
 		maxWidth: Int,
@@ -134,12 +147,11 @@ class TextOverlayView @JvmOverloads constructor(
 		var low = minSize
 		var high = min(maxSize, targetSize)
 		var bestSize = low
-		
+
 		while (high - low > 0.5f) {
 			val mid = (low + high) / 2f
-			textPaint.textSize = mid
-			val layout = createStaticLayout(text, maxWidth)
-			
+			val layout = createStaticLayout(text, textPaint.apply { textSize = mid }, maxWidth)
+
 			if (layout.height <= maxHeight) {
 				bestSize = mid
 				low = mid
@@ -147,15 +159,23 @@ class TextOverlayView @JvmOverloads constructor(
 				high = mid
 			}
 		}
-		
+
 		return max(bestSize, minSize)
 	}
-	
-	private fun createStaticLayout(text: String, width: Int): StaticLayout {
-		return StaticLayout.Builder.obtain(text, 0, text.length, textPaint, width)
+
+	private fun createStaticLayout(text: String, paint: TextPaint, width: Int): StaticLayout {
+		return StaticLayout.Builder.obtain(text, 0, text.length, paint, width)
 			.setAlignment(Layout.Alignment.ALIGN_CENTER)
 			.setLineSpacing(0f, 1f)
 			.setIncludePad(false)
 			.build()
 	}
+
+	private data class ProcessedTextOverlay(
+		val staticLayout: StaticLayout,
+		val left: Float,
+		val top: Float,
+		val rectWidth: Float,
+		val backgroundHeight: Float,
+	)
 }

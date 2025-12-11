@@ -35,7 +35,7 @@ class WebtoonHolder(
 
 	override fun onReady() {
 		binding.ssiv.colorFilter = settings.colorFilter?.toColorFilter()
-		applyTextOverlays()
+		applyTextOverlaysAsync()
 		with(binding.ssiv) {
 			scrollTo(
 				when {
@@ -48,14 +48,21 @@ class WebtoonHolder(
 		}
 	}
 
-	override fun applyTextOverlays() {
-		boundData?.texts?.let { texts ->
-			binding.textOverlayView.setTextOverlays(
-				texts = texts,
-				imageWidth = binding.ssiv.sWidth,
-				imageHeight = binding.ssiv.sHeight
-			)
-		} ?: binding.textOverlayView.clear()
+	override suspend fun processTextOverlays(): Any? {
+		val texts = boundData?.texts ?: return null
+		return binding.textOverlayView.processTextOverlays(
+			texts = texts,
+			imageWidth = binding.ssiv.sWidth,
+			imageHeight = binding.ssiv.sHeight,
+		)
+	}
+
+	override fun renderTextOverlays(processedData: Any?) {
+		if (processedData != null) {
+			binding.textOverlayView.renderTextOverlays(processedData)
+		} else {
+			binding.textOverlayView.clear()
+		}
 	}
 
 	fun getScrollY() = binding.ssiv.getScroll()
