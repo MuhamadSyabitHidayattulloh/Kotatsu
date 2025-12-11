@@ -171,7 +171,7 @@ class TextOverlayView @JvmOverloads constructor(
 			.build()
 	}
 
-	private data class ProcessedTextOverlay(
+	internal data class ProcessedTextOverlay(
 		val staticLayout: StaticLayout,
 		val left: Float,
 		val top: Float,
