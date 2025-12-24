@@ -339,30 +339,24 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 		}
 
 		private fun isAtAbsoluteTop(): Boolean {
-			val lm = layoutManager as? LinearLayoutManager ?: return !canScrollVertically(-1)
-			if (lm.findFirstVisibleItemPosition() != 0) {
+			if (canScrollVertically(-1)) {
 				return false
 			}
-			val child = getChildAt(0) as? WebtoonFrameLayout ?: return false
-			if (child.top < 0) {
-				return false
+			if (childCount <= 0) {
+				return true
 			}
+			val child = getChildAt(0) as? WebtoonFrameLayout ?: return true
 			return child.target.getScroll() <= 0
 		}
 
 		private fun isAtAbsoluteBottom(): Boolean {
-			val adapter = adapter ?: return false
-			val lm = layoutManager as? LinearLayoutManager ?: return !canScrollVertically(1)
-			if (lm.findLastVisibleItemPosition() != adapter.itemCount - 1) {
+			if (canScrollVertically(1)) {
 				return false
 			}
 			if (childCount <= 0) {
-				return false
+				return true
 			}
-			val child = getChildAt(childCount - 1) as? WebtoonFrameLayout ?: return false
-			if (child.bottom > height) {
-				return false
-			}
+			val child = getChildAt(childCount - 1) as? WebtoonFrameLayout ?: return true
 			val ssiv = child.target
 			return ssiv.getScroll() >= ssiv.getScrollRange()
 		}
