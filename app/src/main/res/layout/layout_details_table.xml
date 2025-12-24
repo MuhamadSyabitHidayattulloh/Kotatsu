@@ -188,6 +188,33 @@
 		tools:text="10 of 50" />
 
 	<TextView
+		android:id="@+id/textView_next_update_label"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="12dp"
+		android:layout_marginTop="8dp"
+		android:singleLine="true"
+		android:text="@string/predicted_update"
+		android:textAppearance="?textAppearanceTitleSmall"
+		app:layout_constraintStart_toStartOf="@id/card_details"
+		app:layout_constraintTop_toBottomOf="@id/textView_chapters_label" />
+
+	<TextView
+		android:id="@+id/textView_next_update"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="@dimen/margin_normal"
+		android:layout_marginEnd="@dimen/screen_padding"
+		android:singleLine="true"
+		android:textAppearance="?textAppearanceBodyMedium"
+		app:layout_constrainedWidth="true"
+		app:layout_constraintBaseline_toBaselineOf="@id/textView_next_update_label"
+		app:layout_constraintEnd_toEndOf="@id/card_details"
+		app:layout_constraintHorizontal_bias="0"
+		app:layout_constraintStart_toEndOf="@id/barrier_table"
+		tools:text="In 7 days" />
+
+	<TextView
 		android:id="@+id/textView_local_label"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
@@ -197,7 +224,7 @@
 		android:text="@string/on_device"
 		android:textAppearance="?textAppearanceTitleSmall"
 		app:layout_constraintStart_toStartOf="@id/card_details"
-		app:layout_constraintTop_toBottomOf="@id/textView_chapters_label" />
+		app:layout_constraintTop_toBottomOf="@id/textView_next_update_label" />
 
 	<TextView
 		android:id="@+id/textView_local"
