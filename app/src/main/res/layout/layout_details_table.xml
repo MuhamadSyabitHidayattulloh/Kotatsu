@@ -288,6 +288,6 @@
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
 		app:barrierDirection="end"
-		app:constraint_referenced_ids="textView_source_label,textView_author_label,textView_rating_label,textView_state_label,textView_progress_label,textView_chapters_label,textView_local_label,textView_translation_label" />
+		app:constraint_referenced_ids="textView_source_label,textView_author_label,textView_rating_label,textView_state_label,textView_progress_label,textView_chapters_label,textView_next_update_label,textView_local_label,textView_translation_label" />
 
 </merge>
