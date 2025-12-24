@@ -795,6 +795,8 @@
     <string name="rating">Rating</string>
     <string name="source">Source</string>
     <string name="translation">Translation</string>
+    <string name="predicted_update">Predicted update</string>
+    <string name="predicted_update_not_applicable_pattern">Not applicable for %s</string>
     <string name="chapters_time_pattern" translatable="false">%1$s (%2$s)</string>
     <string name="show_slider">Show slider</string>
     <!-- Button label, should be as short as possible -->

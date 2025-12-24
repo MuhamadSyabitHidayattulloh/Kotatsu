@@ -4,6 +4,7 @@ import android.app.assist.AssistContent
 import android.content.Context
 import android.os.Bundle
 import android.text.SpannedString
+import android.text.format.DateUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -101,11 +102,17 @@ import org.koitharu.kotatsu.list.ui.size.StaticItemSizeResolver
 import org.koitharu.kotatsu.main.ui.owners.BottomSheetOwner
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.scrobbling.common.domain.model.ScrobblingInfo
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlin.math.roundToInt
 import com.google.android.material.R as materialR
@@ -447,6 +454,22 @@ class DetailsActivity :
 				textViewStateLabel.isVisible = false
 			}
 
+			if (manga.state == MangaState.ONGOING) {
+				val nextUpdate = getPredictedNextUpdate(details.allChapters)
+				textViewNextUpdate.text = nextUpdate?.let {
+					DateUtils.getRelativeTimeSpanString(
+						it,
+						System.currentTimeMillis(),
+						DateUtils.DAY_IN_MILLIS,
+					)
+				} ?: getString(R.string.unknown)
+			} else {
+				val state = manga.state?.let { resources.getString(it.titleResId) } ?: getString(R.string.unknown)
+				textViewNextUpdate.text = getString(R.string.predicted_update_not_applicable_pattern, state)
+			}
+			textViewNextUpdate.isVisible = true
+			textViewNextUpdateLabel.isVisible = true
+
 			if (manga.source == LocalMangaSource || manga.source == UnknownMangaSource) {
 				textViewSource.isVisible = false
 				textViewSourceLabel.isVisible = false
@@ -549,6 +572,55 @@ class DetailsActivity :
 		}.nullIfEmpty()
 	}
 
+	private fun getPredictedNextUpdate(chapters: List<MangaChapter>): Long? {
+		if (chapters.isEmpty()) {
+			return null
+		}
+		val zone = ZoneId.systemDefault()
+		val chapterWindow = if (chapters.size <= 8) 3 else 10
+		val uploadDates = chapters.asSequence()
+			.map { it.uploadDate }
+			.filter { it > 0L }
+			.sortedDescending()
+			.map { time ->
+				ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), zone)
+					.toLocalDate()
+					.atStartOfDay(zone)
+			}
+			.distinct()
+			.take(chapterWindow)
+			.toList()
+
+		if (uploadDates.isEmpty()) {
+			return null
+		}
+
+		val intervalDays = calculatePredictedIntervalDays(uploadDates)
+		val latestDate = uploadDates.first()
+		val now = ZonedDateTime.now(zone)
+			.toLocalDate()
+			.atStartOfDay(zone)
+		val timeSinceLatestDays = ChronoUnit.DAYS.between(latestDate, now).toInt().coerceAtLeast(0)
+		val cycle = timeSinceLatestDays.floorDiv(intervalDays)
+		val nextDate = latestDate.plusDays(((cycle + 1) * intervalDays).toLong())
+		return nextDate.toInstant().toEpochMilli()
+	}
+
+	private fun calculatePredictedIntervalDays(uploadDates: List<ZonedDateTime>): Int {
+		val interval = when {
+			uploadDates.size >= 3 -> {
+				val ranges = uploadDates.windowed(2)
+					.map { x -> x[1].until(x[0], ChronoUnit.DAYS).toInt() }
+					.sorted()
+				ranges[(ranges.size - 1) / 2]
+			}
+
+			uploadDates.size == 2 -> uploadDates[1].until(uploadDates[0], ChronoUnit.DAYS).toInt()
+			else -> PREDICT_DEFAULT_INTERVAL_DAYS
+		}
+		return interval.coerceIn(1, PREDICT_MAX_INTERVAL_DAYS)
+	}
+
 	private class PrefetchObserver(
 		private val context: Context,
 	) : FlowCollector<List<ChapterListItem>?> {
@@ -570,5 +642,7 @@ class DetailsActivity :
 	companion object {
 
 		private const val FAV_LABEL_LIMIT = 16
+		private const val PREDICT_DEFAULT_INTERVAL_DAYS = 7
+		private const val PREDICT_MAX_INTERVAL_DAYS = 28
 	}
 }
