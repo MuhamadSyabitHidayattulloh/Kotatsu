@@ -235,6 +235,10 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 		private var distancePx = 0f
 		private var isTracking = false
 
+		companion object {
+			private const val SCROLL_TOLERANCE_PX = 1f
+		}
+
 		fun onTouchEvent(ev: MotionEvent) {
 			val listener = pullListener ?: return
 			if (!isPullGestureEnabled) {
@@ -354,7 +358,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 			}
 
 			val child = getChildAt(0) as? WebtoonFrameLayout ?: return true
-			return child.target.getScroll() <= 0
+			return child.target.getScroll() <= SCROLL_TOLERANCE_PX
 		}
 
 		private fun isAtAbsoluteBottom(): Boolean {
@@ -375,7 +379,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 
 			val child = getChildAt(childCount - 1) as? WebtoonFrameLayout ?: return true
 			val ssiv = child.target
-			return ssiv.getScroll() >= ssiv.getScrollRange()
+			return ssiv.getScroll() >= (ssiv.getScrollRange() - SCROLL_TOLERANCE_PX)
 		}
 	}
 
