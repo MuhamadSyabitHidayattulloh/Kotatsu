@@ -184,6 +184,7 @@ class DownloadsViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			val snapshot = works.value ?: return@launchJob
 			val tasks = ArrayList<Pair<Manga, DownloadTask>>()
+			val uuidsToDelete = HashSet<UUID>()
 			for (work in snapshot) {
 				if (work.id.mostSignificantBits in ids && work.manga != null) {
 					val task = workScheduler.getTask(work.id) ?: continue
@@ -197,9 +198,11 @@ class DownloadsViewModel @Inject constructor(
 						allowMeteredNetwork = task.allowMeteredNetwork,
 					)
 					tasks.add(work.manga to newTask)
+					uuidsToDelete.add(work.id)
 				}
 			}
 			if (tasks.isNotEmpty()) {
+				workScheduler.delete(uuidsToDelete)
 				workScheduler.schedule(tasks)
 				onActionDone.call(ReversibleAction(R.string.download_started, null))
 			}
@@ -217,6 +220,7 @@ class DownloadsViewModel @Inject constructor(
 		launchJob(Dispatchers.Default) {
 			val snapshot = works.value ?: return@launchJob
 			val tasks = ArrayList<Pair<Manga, DownloadTask>>()
+			val uuidsToDelete = HashSet<UUID>()
 			for (work in snapshot) {
 				if (work.hasFailed && work.manga != null) {
 					val task = workScheduler.getTask(work.id) ?: continue
@@ -230,9 +234,11 @@ class DownloadsViewModel @Inject constructor(
 						allowMeteredNetwork = task.allowMeteredNetwork,
 					)
 					tasks.add(work.manga to newTask)
+					uuidsToDelete.add(work.id)
 				}
 			}
 			if (tasks.isNotEmpty()) {
+				workScheduler.delete(uuidsToDelete)
 				workScheduler.schedule(tasks)
 				onActionDone.call(ReversibleAction(R.string.download_started, null))
 			}
