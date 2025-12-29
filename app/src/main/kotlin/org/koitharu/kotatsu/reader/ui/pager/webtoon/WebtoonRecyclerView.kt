@@ -206,9 +206,6 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 	}
 
 	private inner class PullGestureTracker {
-
-		private val edgeTolerancePx = 2
-
 		private var edge = PullEdge.NONE
 		private var lastY = 0f
 		private var distancePx = 0f
@@ -291,7 +288,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 			if (!canScrollVertically(-1)) return true
 			if (childCount <= 0) return true
 			val child = getChildAt(0) as? WebtoonFrameLayout ?: return true
-			return child.target.getScroll() <= edgeTolerancePx
+			return child.target.getScroll() <= 0
 		}
 
 		private fun isAtAbsoluteBottom(): Boolean {
@@ -302,7 +299,7 @@ class WebtoonRecyclerView @JvmOverloads constructor(
 			if (childCount <= 0) return true
 			val child = getChildAt(childCount - 1) as? WebtoonFrameLayout ?: return true
 			val ssiv = child.target
-			return ssiv.getScrollRange() - ssiv.getScroll() <= edgeTolerancePx
+			return ssiv.getScrollRange() - ssiv.getScroll() <= 0
 		}
 	}
 
