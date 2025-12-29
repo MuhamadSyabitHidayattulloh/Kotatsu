@@ -253,10 +253,21 @@ class LocalMangaRepository @Inject constructor(
 
 	private suspend fun getRawList(): ArrayList<LocalManga> = getRawListAsFlow().toCollection(ArrayList())
 
-	private suspend fun getAllFiles() = storageManager.getReadableDirs()
+	private suspend fun getAllFiles(): Sequence<File> = storageManager.getReadableDirs()
 		.asSequence()
 		.flatMap { dir ->
-			dir.withChildren { children -> children.filterNot { it.isHidden || it.shouldSkip() }.toList() }
+			dir.withChildren { children: Sequence<File> ->
+				children.filterNot { it.isHidden || it.shouldSkip() }
+					.flatMap { child: File ->
+						if (child.isDirectory) {
+							child.withChildren { sourceChildren: Sequence<File> ->
+								sourceChildren.filterNot { it.isHidden || it.shouldSkip() }
+							}
+						} else {
+							sequenceOf(child)
+						}
+					}
+			}
 		}
 
 	private fun Collection<LocalManga>.unwrap(): List<Manga> = map { it.manga }
