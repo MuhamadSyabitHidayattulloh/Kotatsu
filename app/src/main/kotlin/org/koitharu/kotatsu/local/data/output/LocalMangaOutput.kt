@@ -65,12 +65,14 @@ sealed class LocalMangaOutput(
 			format: DownloadFormat,
 		): LocalMangaOutput? {
 			mutex.withLock {
+				val sourceName = manga.source.name.toFileNameSafe()
+				val sourceDir = File(root, sourceName)
 				var i = 0
 				val baseName = manga.title.toFileNameSafe()
 				while (true) {
 					val fileName = if (i == 0) baseName else baseName + "_$i"
-					val dir = File(root, fileName)
-					val zip = File(root, "$fileName.cbz")
+					val dir = File(sourceDir, fileName)
+					val zip = File(sourceDir, "$fileName.cbz")
 					i++
 					return when {
 						dir.isDirectory -> {

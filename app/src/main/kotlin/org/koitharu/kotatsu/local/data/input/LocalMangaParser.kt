@@ -257,9 +257,14 @@ class LocalMangaParser(private val uri: Uri) {
 
 		suspend fun find(roots: Iterable<File>, manga: Manga): LocalMangaParser? = channelFlow {
 			val fileName = manga.title.toFileNameSafe()
+			val sourceName = manga.source.name.toFileNameSafe()
 			for (root in roots) {
 				launch {
-					val parser = getOrNull(File(root, fileName)) ?: getOrNull(File(root, "$fileName.cbz"))
+					val sourceDir = File(root, sourceName)
+					val parser = getOrNull(File(sourceDir, fileName))
+						?: getOrNull(File(sourceDir, "$fileName.cbz"))
+						?: getOrNull(File(root, fileName))
+						?: getOrNull(File(root, "$fileName.cbz"))
 					val info = runCatchingCancellable { parser?.getMangaInfo() }.getOrNull()
 					if (info?.id == manga.id) {
 						send(parser)
