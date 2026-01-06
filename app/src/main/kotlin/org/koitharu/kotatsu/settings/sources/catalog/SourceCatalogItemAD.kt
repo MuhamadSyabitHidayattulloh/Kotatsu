@@ -52,6 +52,43 @@ fun sourceCatalogItemSourceAD(
 	}
 }
 
+fun sourceCatalogItemKeiyoshiAD(
+	listener: OnListItemClickListener<SourceCatalogItem.KeiyoshiSource>
+) = adapterDelegateViewBinding<SourceCatalogItem.KeiyoshiSource, ListModel, ItemSourceCatalogBinding>(
+	{ layoutInflater, parent ->
+		ItemSourceCatalogBinding.inflate(layoutInflater, parent, false)
+	},
+) {
+
+	binding.imageViewAdd.setOnClickListener { v ->
+		listener.onItemLongClick(item, v)
+	}
+	binding.root.setOnClickListener { v ->
+		listener.onItemClick(item, v)
+	}
+	val basePadding = context.getThemeDimensionPixelOffset(
+		appcompatR.attr.listPreferredItemPaddingEnd,
+		binding.root.paddingStart,
+	)
+	binding.root.updatePaddingRelative(
+		end = (basePadding - context.resources.getDimensionPixelOffset(R.dimen.margin_small)).coerceAtLeast(0),
+	)
+
+	bind {
+		binding.textViewTitle.text = item.source.getTitle(context)
+		binding.textViewDescription.text = item.source.getSummary(context)
+		binding.textViewDescription.drawableStart = null
+		val icon = item.source.icon
+		if (icon != null) {
+			binding.imageViewIcon.setImageDrawable(icon)
+		} else {
+			binding.imageViewIcon.setImageDrawable(
+				FaviconDrawable(context, R.style.FaviconDrawable_Small, item.source.name)
+			)
+		}
+	}
+}
+
 fun sourceCatalogItemHintAD() = adapterDelegateViewBinding<SourceCatalogItem.Hint, ListModel, ItemEmptyHintBinding>(
 	{ inflater, parent -> ItemEmptyHintBinding.inflate(inflater, parent, false) },
 ) {

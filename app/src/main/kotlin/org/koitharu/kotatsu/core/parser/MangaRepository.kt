@@ -11,6 +11,9 @@ import org.koitharu.kotatsu.core.model.TestMangaSource
 import org.koitharu.kotatsu.core.model.UnknownMangaSource
 import org.koitharu.kotatsu.core.parser.external.ExternalMangaRepository
 import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiExtensionLoader
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiMangaRepository
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiMangaSource
 import org.koitharu.kotatsu.local.data.LocalMangaRepository
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -63,6 +66,7 @@ interface MangaRepository {
 	) {
 
 		private val cache = ArrayMap<MangaSource, WeakReference<MangaRepository>>()
+		private val keiyoshiLoader by lazy { KeiyoshiExtensionLoader(context) }
 
 		@AnyThread
 		fun create(source: MangaSource): MangaRepository {
@@ -104,6 +108,19 @@ interface MangaRepository {
 				)
 			} else {
 				EmptyMangaRepository(source)
+			}
+
+			is KeiyoshiMangaSource -> {
+				val wrapper = keiyoshiLoader.getSourceWrapper(source)
+				if (wrapper != null) {
+					KeiyoshiMangaRepository(
+						source = source,
+						sourceWrapper = wrapper,
+						cache = contentCache,
+					)
+				} else {
+					EmptyMangaRepository(source)
+				}
 			}
 
 			else -> null

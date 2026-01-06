@@ -32,6 +32,7 @@ import org.koitharu.kotatsu.core.parser.EmptyMangaRepository
 import org.koitharu.kotatsu.core.parser.MangaRepository
 import org.koitharu.kotatsu.core.parser.ParserMangaRepository
 import org.koitharu.kotatsu.core.parser.external.ExternalMangaRepository
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiMangaRepository
 import org.koitharu.kotatsu.core.util.MimeTypes
 import org.koitharu.kotatsu.core.util.ext.fetch
 import org.koitharu.kotatsu.core.util.ext.printStackTraceDebug
@@ -58,6 +59,7 @@ class FaviconFetcher(
 		return when (val repo = mangaRepositoryFactory.create(mangaSource)) {
 			is ParserMangaRepository -> fetchParserFavicon(repo)
 			is ExternalMangaRepository -> fetchPluginIcon(repo)
+			is KeiyoshiMangaRepository -> fetchKeiyoshiIcon(repo)
 			is EmptyMangaRepository -> ImageFetchResult(
 				image = ColorImage(Color.WHITE),
 				isSampled = false,
@@ -123,6 +125,28 @@ class FaviconFetcher(
 			isSampled = false,
 			dataSource = DataSource.DISK,
 		)
+	}
+
+	private suspend fun fetchKeiyoshiIcon(repository: KeiyoshiMangaRepository): FetchResult {
+		val source = repository.source
+		val icon = source.icon
+		return if (icon != null) {
+			ImageFetchResult(
+				image = icon.nonAdaptive().asImage(),
+				isSampled = false,
+				dataSource = DataSource.DISK,
+			)
+		} else {
+			val pm = options.context.packageManager
+			val appIcon = runInterruptible {
+				pm.getApplicationIcon(source.packageName)
+			}
+			ImageFetchResult(
+				image = appIcon.nonAdaptive().asImage(),
+				isSampled = false,
+				dataSource = DataSource.DISK,
+			)
+		}
 	}
 
 	private suspend fun writeToCache(key: String, result: FetchResult): FetchResult = runCatchingCancellable {
