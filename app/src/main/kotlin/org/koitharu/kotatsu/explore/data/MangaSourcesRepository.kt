@@ -25,6 +25,8 @@ import org.koitharu.kotatsu.core.model.MangaSourceInfo
 import org.koitharu.kotatsu.core.model.getTitle
 import org.koitharu.kotatsu.core.model.isNsfw
 import org.koitharu.kotatsu.core.parser.external.ExternalMangaSource
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiExtensionLoader
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiMangaSource
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.prefs.observeAsFlow
 import org.koitharu.kotatsu.core.ui.util.ReversibleHandle
@@ -52,6 +54,8 @@ class MangaSourcesRepository @Inject constructor(
 	private val dao: MangaSourcesDao
 		get() = db.getSourcesDao()
 
+	private val keiyoshiLoader by lazy { KeiyoshiExtensionLoader(context) }
+
 	val allMangaSources: Set<MangaParserSource> = Collections.unmodifiableSet(
 		EnumSet.allOf(MangaParserSource::class.java)
 	)
@@ -62,8 +66,10 @@ class MangaSourcesRepository @Inject constructor(
 		return dao.findAll(!settings.isAllSourcesEnabled, order).toSources(settings.isNsfwContentDisabled, order)
 			.let { enabled ->
 				val external = getExternalSources()
-				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size)
+				val keiyoshi = getKeiyoshiSources()
+				val list = ArrayList<MangaSourceInfo>(enabled.size + external.size + keiyoshi.size)
 				external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
+				keiyoshi.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
 				list.addAll(enabled)
 				list
 			}
@@ -181,6 +187,12 @@ class MangaSourcesRepository @Inject constructor(
 			val list = ArrayList<MangaSourceInfo>(enabled.size + external.size)
 			external.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = true) }
 			list.addAll(enabled)
+			list
+		}
+		.combine(observeKeiyoshiSources()) { enabled, keiyoshi ->
+			val list = ArrayList<MangaSourceInfo>(enabled.size + keiyoshi.size)
+			list.addAll(enabled)
+			keiyoshi.mapTo(list) { MangaSourceInfo(it, isEnabled = true, isPinned = false) }
 			list
 		}
 
@@ -351,6 +363,35 @@ class MangaSourcesRepository @Inject constructor(
 			.conflate()
 	}
 
+	private fun observeKeiyoshiSources(): Flow<List<KeiyoshiMangaSource>> {
+		return callbackFlow {
+			val receiver = object : BroadcastReceiver() {
+				override fun onReceive(context: Context?, intent: Intent?) {
+					trySendBlocking(intent)
+				}
+			}
+			ContextCompat.registerReceiver(
+				context,
+				receiver,
+				IntentFilter().apply {
+					addAction(Intent.ACTION_PACKAGE_ADDED)
+					addAction(Intent.ACTION_PACKAGE_VERIFIED)
+					addAction(Intent.ACTION_PACKAGE_REPLACED)
+					addAction(Intent.ACTION_PACKAGE_REMOVED)
+					addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED)
+					addDataScheme("package")
+				},
+				ContextCompat.RECEIVER_EXPORTED,
+			)
+			awaitClose { context.unregisterReceiver(receiver) }
+		}.onStart {
+			emit(null)
+		}.map {
+			getKeiyoshiSources()
+		}.distinctUntilChanged()
+			.conflate()
+	}
+
 	fun getExternalSources(): List<ExternalMangaSource> = context.packageManager.queryIntentContentProviders(
 		Intent("app.kotatsu.parser.PROVIDE_MANGA"), 0,
 	).map { resolveInfo ->
@@ -359,6 +400,22 @@ class MangaSourcesRepository @Inject constructor(
 			authority = resolveInfo.providerInfo.authority,
 		)
 	}
+
+	fun getKeiyoshiSources(): List<KeiyoshiMangaSource> = try {
+		val skipNsfw = settings.isNsfwContentDisabled
+		val sources = keiyoshiLoader.loadExtensions()
+		android.util.Log.d("MangaSourcesRepo", "Loaded ${sources.size} Keiyoshi sources, skipNsfw=$skipNsfw")
+		sources.filter { source ->
+			!skipNsfw || !source.isNsfw
+		}.also {
+			android.util.Log.d("MangaSourcesRepo", "After NSFW filter: ${it.size} sources")
+		}
+	} catch (e: Exception) {
+		android.util.Log.e("MangaSourcesRepo", "Failed to load Keiyoshi sources", e)
+		emptyList()
+	}
+
+	fun getKeiyoshiExtensionLoader(): KeiyoshiExtensionLoader = keiyoshiLoader
 
 	private fun List<MangaSourceEntity>.toSources(
 		skipNsfwSources: Boolean,

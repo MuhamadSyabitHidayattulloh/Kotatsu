@@ -14,6 +14,8 @@ import kotlinx.coroutines.plus
 import org.koitharu.kotatsu.R
 import org.koitharu.kotatsu.core.db.MangaDatabase
 import org.koitharu.kotatsu.core.db.TABLE_SOURCES
+import org.koitharu.kotatsu.core.model.getTitle
+import org.koitharu.kotatsu.core.parser.keiyoshi.KeiyoshiMangaSource
 import org.koitharu.kotatsu.core.prefs.AppSettings
 import org.koitharu.kotatsu.core.ui.BaseViewModel
 import org.koitharu.kotatsu.core.ui.util.ReversibleAction
@@ -103,7 +105,7 @@ class SourcesCatalogViewModel @Inject constructor(
 	}
 
 	private suspend fun buildSourcesList(filter: SourcesCatalogFilter, query: String?): List<SourceCatalogItem> {
-		val sources = repository.queryParserSources(
+		val parserSources = repository.queryParserSources(
 			isDisabledOnly = true,
 			isNewOnly = filter.isNewOnly,
 			excludeBroken = false,
@@ -112,7 +114,15 @@ class SourcesCatalogViewModel @Inject constructor(
 			locale = filter.locale,
 			sortOrder = SourcesSortOrder.ALPHABETIC,
 		)
-		return if (sources.isEmpty()) {
+
+		val keiyoshiSources = getFilteredKeiyoshiSources(query, filter.locale)
+
+		val parserItems = parserSources.map { SourceCatalogItem.Source(source = it) }
+		val keiyoshiItems = keiyoshiSources.map { SourceCatalogItem.KeiyoshiSource(source = it) }
+
+		val allItems = parserItems + keiyoshiItems
+
+		return if (allItems.isEmpty()) {
 			listOf(
 				if (query == null) {
 					SourceCatalogItem.Hint(
@@ -129,9 +139,17 @@ class SourcesCatalogViewModel @Inject constructor(
 				},
 			)
 		} else {
-			sources.map {
-				SourceCatalogItem.Source(source = it)
-			}
+			allItems
+		}
+	}
+
+	private fun getFilteredKeiyoshiSources(query: String?, locale: String?): List<KeiyoshiMangaSource> {
+		val sources = repository.getKeiyoshiSources()
+		return sources.filter { source ->
+			val matchesQuery = query.isNullOrEmpty() ||
+				source.sourceName.contains(query, ignoreCase = true)
+			val matchesLocale = locale == null || source.sourceLang == locale
+			matchesQuery && matchesLocale
 		}
 	}
 

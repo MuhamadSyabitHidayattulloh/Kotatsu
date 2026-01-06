@@ -45,11 +45,22 @@ class SourcesCatalogActivity : BaseActivity<ActivitySourcesCatalogBinding>(),
 
 	private val viewModel by viewModels<SourcesCatalogViewModel>()
 
+	private val keiyoshiListener = object : OnListItemClickListener<SourceCatalogItem.KeiyoshiSource> {
+		override fun onItemClick(item: SourceCatalogItem.KeiyoshiSource, view: View) {
+			router.openList(item.source, null, null)
+		}
+
+		override fun onItemLongClick(item: SourceCatalogItem.KeiyoshiSource, view: View): Boolean {
+			viewModel.addSource(item.source)
+			return false
+		}
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		setContentView(ActivitySourcesCatalogBinding.inflate(layoutInflater))
 		setDisplayHomeAsUp(isEnabled = true, showUpAsClose = false)
-		val sourcesAdapter = SourcesCatalogAdapter(this)
+		val sourcesAdapter = SourcesCatalogAdapter(this, keiyoshiListener)
 		with(viewBinding.recyclerView) {
 			setHasFixedSize(true)
 			addItemDecoration(TypedListSpacingDecoration(context, false))

@@ -11,15 +11,22 @@ import org.koitharu.kotatsu.list.ui.model.ListModel
 
 class SourcesCatalogAdapter(
 	listener: OnListItemClickListener<SourceCatalogItem.Source>,
+	keiyoshiListener: OnListItemClickListener<SourceCatalogItem.KeiyoshiSource>,
 ) : BaseListAdapter<ListModel>(), FastScroller.SectionIndexer {
 
 	init {
 		addDelegate(ListItemType.CHAPTER_LIST, sourceCatalogItemSourceAD(listener))
+		addDelegate(ListItemType.NAV_ITEM, sourceCatalogItemKeiyoshiAD(keiyoshiListener))
 		addDelegate(ListItemType.HINT_EMPTY, sourceCatalogItemHintAD())
 		addDelegate(ListItemType.STATE_LOADING, loadingStateAD())
 	}
 
 	override fun getSectionText(context: Context, position: Int): CharSequence? {
-		return (items.getOrNull(position) as? SourceCatalogItem.Source)?.source?.getTitle(context)?.take(1)
+		val item = items.getOrNull(position)
+		return when (item) {
+			is SourceCatalogItem.Source -> item.source.getTitle(context).take(1)
+			is SourceCatalogItem.KeiyoshiSource -> item.source.getTitle(context).take(1)
+			else -> null
+		}
 	}
 }
